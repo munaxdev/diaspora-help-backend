@@ -29,7 +29,7 @@ class AdminController extends Controller
                 'requests' => $requests,
             ]);
         } catch (Throwable $exception) {
-            Log::error('Request retrieval error: '.$exception->getMessage());
+            Log::error('Request retrieval error: ' . $exception->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -56,7 +56,7 @@ class AdminController extends Controller
             ]);
         } catch (ValidationException $exception) {
             $errors = $exception->errors();
-            Log::error('Mark request as viewed validation error: '.json_encode($errors));
+            Log::error('Mark request as viewed validation error: ' . json_encode($errors));
 
             return response()->json([
                 'success' => false,
@@ -64,7 +64,7 @@ class AdminController extends Controller
                 'errors' => $errors,
             ], 422);
         } catch (Throwable $exception) {
-            Log::error('Mark request as viewed error: '.$exception->getMessage());
+            Log::error('Mark request as viewed error: ' . $exception->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -94,7 +94,7 @@ class AdminController extends Controller
             ]);
         } catch (ValidationException $exception) {
             $errors = $exception->errors();
-            Log::error('Request update validation error: '.json_encode($errors));
+            Log::error('Request update validation error: ' . json_encode($errors));
 
             return response()->json([
                 'success' => false,
@@ -102,7 +102,7 @@ class AdminController extends Controller
                 'errors' => $errors,
             ], 422);
         } catch (Throwable $exception) {
-            Log::error('Request update error: '.$exception->getMessage());
+            Log::error('Request update error: ' . $exception->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -118,7 +118,8 @@ class AdminController extends Controller
         try {
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
-                'description' => ['nullable', 'string', 'max:255'],
+                'services' => ['nullable', 'array'],
+                'services.*' => ['required', 'string', 'max:255'],
                 'image' => [
                     'nullable',
                     'file',
@@ -130,7 +131,7 @@ class AdminController extends Controller
 
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
-                $filename = Str::uuid().'.'.$file->extension();
+                $filename = Str::uuid() . '.' . $file->extension();
                 File::ensureDirectoryExists(public_path('categoryimages'));
                 $file->move(public_path('categoryimages'), $filename);
                 $validated['image'] = $filename;
@@ -145,7 +146,7 @@ class AdminController extends Controller
             ], 201);
         } catch (ValidationException $exception) {
             $errors = $exception->errors();
-            Log::error('Category validation error: '.json_encode($errors));
+            Log::error('Category validation error: ' . json_encode($errors));
 
             return response()->json([
                 'success' => false,
@@ -154,10 +155,10 @@ class AdminController extends Controller
             ], 422);
         } catch (Throwable $exception) {
             if ($filename !== null) {
-                File::delete(public_path('categoryimages/'.$filename));
+                File::delete(public_path('categoryimages/' . $filename));
             }
 
-            Log::error('Category creation error: '.$exception->getMessage());
+            Log::error('Category creation error: ' . $exception->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -172,7 +173,7 @@ class AdminController extends Controller
             $categories = Categories::all();
 
             $categories->each(function (Categories $category): void {
-                $category->image = asset('categoryimages/'.$category->image);
+                $category->image = asset('categoryimages/' . $category->image);
             });
 
             return response()->json([
@@ -180,7 +181,7 @@ class AdminController extends Controller
                 'categories' => $categories,
             ]);
         } catch (Throwable $exception) {
-            Log::error('Category retrieval error: '.$exception->getMessage());
+            Log::error('Category retrieval error: ' . $exception->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -197,7 +198,8 @@ class AdminController extends Controller
             $validated = $request->validate([
                 'category_id' => ['required', 'integer', Rule::exists('categories', 'id')],
                 'name' => ['sometimes', 'required', 'string', 'max:255'],
-                'description' => ['sometimes', 'nullable', 'string', 'max:255'],
+                'services' => ['nullable', 'array'],
+                'services.*' => ['required', 'string', 'max:255'],
                 'image' => [
                     'sometimes',
                     'nullable',
@@ -214,7 +216,7 @@ class AdminController extends Controller
 
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
-                $newFilename = Str::uuid().'.'.$file->extension();
+                $newFilename = Str::uuid() . '.' . $file->extension();
                 File::ensureDirectoryExists(public_path('categoryimages'));
                 $file->move(public_path('categoryimages'), $newFilename);
                 $validated['image'] = $newFilename;
@@ -223,7 +225,7 @@ class AdminController extends Controller
             $category->update($validated);
 
             if ($newFilename !== null && $oldFilename !== null) {
-                File::delete(public_path('categoryimages/'.basename($oldFilename)));
+                File::delete(public_path('categoryimages/' . basename($oldFilename)));
             }
 
             return response()->json([
@@ -233,7 +235,7 @@ class AdminController extends Controller
             ]);
         } catch (ValidationException $exception) {
             $errors = $exception->errors();
-            Log::error('Category update validation error: '.json_encode($errors));
+            Log::error('Category update validation error: ' . json_encode($errors));
 
             return response()->json([
                 'success' => false,
@@ -242,10 +244,10 @@ class AdminController extends Controller
             ], 422);
         } catch (Throwable $exception) {
             if ($newFilename !== null) {
-                File::delete(public_path('categoryimages/'.$newFilename));
+                File::delete(public_path('categoryimages/' . $newFilename));
             }
 
-            Log::error('Category update error: '.$exception->getMessage());
+            Log::error('Category update error: ' . $exception->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -270,7 +272,7 @@ class AdminController extends Controller
             $category->delete();
 
             if ($filename !== null) {
-                File::delete(public_path('categoryimages/'.basename($filename)));
+                File::delete(public_path('categoryimages/' . basename($filename)));
             }
 
             return response()->json([
@@ -278,7 +280,7 @@ class AdminController extends Controller
                 'message' => 'Category deleted successfully.',
             ]);
         } catch (Throwable $exception) {
-            Log::error('Category deletion error: '.$exception->getMessage());
+            Log::error('Category deletion error: ' . $exception->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -307,7 +309,7 @@ class AdminController extends Controller
 
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
-                $filename = Str::uuid().'.'.$file->extension();
+                $filename = Str::uuid() . '.' . $file->extension();
                 File::ensureDirectoryExists(public_path('subcategoryimages'));
                 $file->move(public_path('subcategoryimages'), $filename);
                 $validated['image'] = $filename;
@@ -322,7 +324,7 @@ class AdminController extends Controller
             ], 201);
         } catch (ValidationException $exception) {
             $errors = $exception->errors();
-            Log::error('Sub-category validation error: '.json_encode($errors));
+            Log::error('Sub-category validation error: ' . json_encode($errors));
 
             return response()->json([
                 'success' => false,
@@ -331,10 +333,10 @@ class AdminController extends Controller
             ], 422);
         } catch (Throwable $exception) {
             if ($filename !== null) {
-                File::delete(public_path('subcategoryimages/'.$filename));
+                File::delete(public_path('subcategoryimages/' . $filename));
             }
 
-            Log::error('Sub-category creation error: '.$exception->getMessage());
+            Log::error('Sub-category creation error: ' . $exception->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -353,7 +355,7 @@ class AdminController extends Controller
 
             $subCategories->each(function (SubCategories $subCategory): void {
                 if ($subCategory->image !== null) {
-                    $subCategory->image = asset('subcategoryimages/'.$subCategory->image);
+                    $subCategory->image = asset('subcategoryimages/' . $subCategory->image);
                 }
             });
 
@@ -362,7 +364,7 @@ class AdminController extends Controller
                 'sub_categories' => $subCategories,
             ]);
         } catch (Throwable $exception) {
-            Log::error('Sub-category retrieval error: '.$exception->getMessage());
+            Log::error('Sub-category retrieval error: ' . $exception->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -397,7 +399,7 @@ class AdminController extends Controller
 
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
-                $newFilename = Str::uuid().'.'.$file->extension();
+                $newFilename = Str::uuid() . '.' . $file->extension();
                 File::ensureDirectoryExists(public_path('subcategoryimages'));
                 $file->move(public_path('subcategoryimages'), $newFilename);
                 $validated['image'] = $newFilename;
@@ -406,7 +408,7 @@ class AdminController extends Controller
             $subCategory->update($validated);
 
             if ($newFilename !== null && $oldFilename !== null) {
-                File::delete(public_path('subcategoryimages/'.basename($oldFilename)));
+                File::delete(public_path('subcategoryimages/' . basename($oldFilename)));
             }
 
             return response()->json([
@@ -416,7 +418,7 @@ class AdminController extends Controller
             ]);
         } catch (ValidationException $exception) {
             $errors = $exception->errors();
-            Log::error('Sub-category update validation error: '.json_encode($errors));
+            Log::error('Sub-category update validation error: ' . json_encode($errors));
 
             return response()->json([
                 'success' => false,
@@ -425,10 +427,10 @@ class AdminController extends Controller
             ], 422);
         } catch (Throwable $exception) {
             if ($newFilename !== null) {
-                File::delete(public_path('subcategoryimages/'.$newFilename));
+                File::delete(public_path('subcategoryimages/' . $newFilename));
             }
 
-            Log::error('Sub-category update error: '.$exception->getMessage());
+            Log::error('Sub-category update error: ' . $exception->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -453,7 +455,7 @@ class AdminController extends Controller
             $subCategory->delete();
 
             if ($filename !== null) {
-                File::delete(public_path('subcategoryimages/'.basename($filename)));
+                File::delete(public_path('subcategoryimages/' . basename($filename)));
             }
 
             return response()->json([
@@ -461,7 +463,7 @@ class AdminController extends Controller
                 'message' => 'Sub-category deleted successfully.',
             ]);
         } catch (Throwable $exception) {
-            Log::error('Sub-category deletion error: '.$exception->getMessage());
+            Log::error('Sub-category deletion error: ' . $exception->getMessage());
 
             return response()->json([
                 'success' => false,

@@ -63,21 +63,12 @@ class HomeController extends Controller
     public function FetchCategories(): JsonResponse
     {
         try {
-            $categories = Categories::query()
-                ->with(['subCategories' => fn ($query) => $query->latest()])
-                ->latest()
-                ->get();
+            $categories = Categories::all();
 
             $categories->each(function (Categories $category): void {
                 if ($category->image !== null) {
                     $category->image = asset('categoryimages/'.$category->image);
                 }
-
-                $category->subCategories->each(function (SubCategories $subCategory): void {
-                    if ($subCategory->image !== null) {
-                        $subCategory->image = asset('subcategoryimages/'.$subCategory->image);
-                    }
-                });
             });
 
             return response()->json([
